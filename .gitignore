@@ -1,1 +1,42 @@
+# Byte-compiled Python files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Distribution / Packaging
+*.egg-info/
+build/
+dist/
+
+# Data files
+data/raw/
+data/interim/
+data/processed/
+
+# Docker
+*.dockerignore
+Dockerfile
+
+# Logs and debug files
+*.log
+*.out
+*.err
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Git-related files
+.git/
+.gitignore
 /venv
