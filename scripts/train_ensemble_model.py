@@ -1,0 +1,116 @@
+import os
+import pickle
+import json
+from sklearn.ensemble import VotingClassifier
+from sklearn.metrics import classification_report, accuracy_score
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
+# Paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATASET_PATH = os.path.join(BASE_DIR, "..", "data", "prepared", "cleaned_dataset.json")
+MODELS_DIR = os.path.join(BASE_DIR, "..", "data", "models")
+ENSEMBLE_MODEL_PATH = os.path.join(MODELS_DIR, "ensemble_model.pkl")
+
+def load_data(file_path):
+    """Load and preprocess the dataset."""
+    with open(file_path, "r") as file:
+        data = json.load(file)
+    texts = [item["text"] for item in data]
+    labels = [item["category"] for item in data]
+    return texts, labels
+
+def load_models():
+    """Load all pre-trained models."""
+    models = {}
+    vectorizer = None
+
+    model_names = [
+        "logistic_regression_balanced",
+        "random_forest",
+        "naive_bayes",
+        "knn",
+        "svm",
+        "xgboost",
+        "decision_tree",
+    ]
+
+    for model_name in model_names:
+        model_path = os.path.join(MODELS_DIR, f"{model_name}.pkl")
+        try:
+            with open(model_path, "rb") as file:
+                data = pickle.load(file)
+                if isinstance(data, dict):
+                    models[model_name] = data["model"]
+                    if vectorizer is None:
+                        vectorizer = data["vectorizer"]
+                else:
+                    models[model_name] = data
+        except Exception as e:
+            print(f"Error loading {model_name}: {e}")
+            continue
+
+    if vectorizer is None:
+        raise ValueError("No vectorizer found among the models.")
+    return models, vectorizer
+
+def create_ensemble(models):
+    """Create a voting ensemble classifier."""
+    ensemble = VotingClassifier(
+        estimators=[
+            ("lr_balanced", models["logistic_regression_balanced"]),
+            ("rf", models["random_forest"]),
+            ("nb", models["naive_bayes"]),
+            ("knn", models["knn"]),
+            ("svm", models["svm"]),
+            ("xgb", models["xgboost"]),
+            ("dt", models["decision_tree"]),
+        ],
+        voting="soft"  # Use soft voting for probabilities
+    )
+    return ensemble
+
+def main():
+    print("Loading data...")
+    texts, labels = load_data(DATASET_PATH)
+
+    print("Vectorizing data...")
+    vectorizer = TfidfVectorizer(max_features=5000, stop_words="english")
+    features = vectorizer.fit_transform(texts)
+
+    print("Encoding labels...")
+    label_encoder = LabelEncoder()
+    labels_encoded = label_encoder.fit_transform(labels)
+
+    print("Splitting data...")
+    X_train, X_test, y_train, y_test = train_test_split(
+        features, labels_encoded, test_size=0.2, random_state=42
+    )
+
+    print("Loading models...")
+    models, model_vectorizer = load_models()
+
+    print("Creating ensemble model...")
+    ensemble = create_ensemble(models)
+
+    print("Training ensemble model...")
+    ensemble.fit(X_train, y_train)
+
+    print("Evaluating ensemble model...")
+    y_pred = ensemble.predict(X_test)
+    print("Evaluation Metrics:")
+    print(classification_report(label_encoder.inverse_transform(y_test),
+                                label_encoder.inverse_transform(y_pred)))
+    print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+
+    print(f"Saving the ensemble model to {ENSEMBLE_MODEL_PATH}...")
+    with open(ENSEMBLE_MODEL_PATH, "wb") as file:
+        pickle.dump({
+            "model": ensemble,
+            "vectorizer": vectorizer,
+            "label_encoder": label_encoder
+        }, file)
+
+if __name__ == "__main__":
+    main()
