@@ -62,9 +62,16 @@ def organize_resumes(categorized_data, pdf_paths):
                     break
     return output_folder
 
-# Let user select specific categories
-def select_categories(model):
-    categories = model.classes_
+# Updated function to select categories
+def select_categories(label_encoder):
+    """
+    Allow the user to select categories from a list of classes.
+    Args:
+        label_encoder: The label encoder used during training to decode labels.
+    Returns:
+        List of selected categories.
+    """
+    categories = label_encoder.classes_  # Retrieve categories from the label encoder
     selected = []
 
     def add_selection():
@@ -86,13 +93,16 @@ def select_categories(model):
 
     return selected
 
-# Tkinter GUI
+# Updated Tkinter GUI function
 def run_app():
     root = tk.Tk()
     root.title("Resume Classifier")
     root.geometry("600x400")
 
-    model, vectorizer = load_model()
+    # Load model and label encoder
+    model_data = load_model()
+    model, vectorizer = model_data["model"], model_data["vectorizer"]
+    label_encoder = model_data["label_encoder"]
 
     def import_pdfs():
         pdf_paths = filedialog.askopenfilenames(
@@ -105,7 +115,7 @@ def run_app():
             return
 
         # Let user select categories
-        selected_categories = select_categories(model)
+        selected_categories = select_categories(label_encoder)
         if not selected_categories:
             messagebox.showwarning("No Categories Selected", "Please select at least one category.")
             return
@@ -131,6 +141,17 @@ def run_app():
     tk.Label(root, text="Select PDFs to classify them into specific categories and organize them.", wraplength=400).pack(pady=10)
 
     root.mainloop()
+
+# Updated load_model function to include the label encoder
+def load_model():
+    model_path = os.path.join(MODELS_DIR, "ensemble_model.pkl")
+    with open(model_path, "rb") as file:
+        data = joblib.load(file)
+    return {
+        "model": data["model"],
+        "vectorizer": data["vectorizer"],
+        "label_encoder": data["label_encoder"],  # Ensure label encoder is loaded
+    }
 
 if __name__ == "__main__":
     run_app()
