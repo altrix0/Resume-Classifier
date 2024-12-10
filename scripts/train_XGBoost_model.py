@@ -21,7 +21,7 @@ def load_data(file_path):
     texts, labels = [], []
     for item in data:
         texts.append(item['text'])
-        labels.append(item['category'])
+        labels.append(item['label'])  # Changed 'category' to 'label'
     return texts, labels
 
 def extract_features(X_train_text, X_test_text):

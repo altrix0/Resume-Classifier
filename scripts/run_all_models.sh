@@ -19,4 +19,7 @@ python3 scripts/train_DecisionTree_model.py
 echo "Running XGBoost Training..."
 python3 scripts/train_XGBoost_model.py
 
+echo "Running Ensemble Training..."
+python3 scripts/train_ensemble_model.py
+
 echo "Training complete!"
