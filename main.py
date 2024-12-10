@@ -13,12 +13,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, "data", "models")
 OUTPUT_DIR = os.path.join(BASE_DIR, "data", "outputs")
 
-# Load pre-trained ensemble model and vectorizer
+# Load pre-trained ensemble model, vectorizer, and label encoder
 def load_model():
     model_path = os.path.join(MODELS_DIR, "ensemble_model.pkl")
     with open(model_path, "rb") as file:
         data = joblib.load(file)
-    return data["model"], data["vectorizer"]
+    return data["model"], data["vectorizer"], data["label_encoder"]
+
 
 # Extract text from PDFs
 def extract_text_from_pdfs(pdf_paths):
@@ -63,13 +64,31 @@ def organize_resumes(categorized_data, pdf_paths):
     return output_folder
 
 # Let user select specific categories
-def select_categories(model):
-    categories = model.classes_
+def select_categories(label_encoder):
+    # Decode categories to their original string labels
+    categories = label_encoder.classes_
     selected = []
 
     def add_selection():
         selected.extend([categories[i] for i in listbox.curselection()])
         selection_window.destroy()
+
+    # Create selection window
+    selection_window = tk.Tk()
+    selection_window.title("Select Categories")
+    tk.Label(selection_window, text="Select categories to classify resumes into:").pack(pady=10)
+
+    listbox = tk.Listbox(selection_window, selectmode=tk.MULTIPLE, width=50, height=15)
+    for category in categories:
+        listbox.insert(tk.END, category)
+    listbox.pack(pady=10)
+
+    tk.Button(selection_window, text="OK", command=add_selection).pack(pady=10)
+    selection_window.mainloop()
+
+    return selected
+
+
 
     # Create selection window
     selection_window = tk.Tk()
@@ -92,7 +111,7 @@ def run_app():
     root.title("Resume Classifier")
     root.geometry("600x400")
 
-    model, vectorizer = load_model()
+    model, vectorizer, label_encoder = load_model()  # Load label_encoder
 
     def import_pdfs():
         pdf_paths = filedialog.askopenfilenames(
@@ -105,7 +124,7 @@ def run_app():
             return
 
         # Let user select categories
-        selected_categories = select_categories(model)
+        selected_categories = select_categories(label_encoder)
         if not selected_categories:
             messagebox.showwarning("No Categories Selected", "Please select at least one category.")
             return
@@ -131,6 +150,7 @@ def run_app():
     tk.Label(root, text="Select PDFs to classify them into specific categories and organize them.", wraplength=400).pack(pady=10)
 
     root.mainloop()
+
 
 if __name__ == "__main__":
     run_app()
