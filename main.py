@@ -1,14 +1,13 @@
+import os
+import shutil
+import json
 import tkinter as tk
 from tkinter import messagebox, Toplevel, Listbox, MULTIPLE, filedialog
 from tkinter import ttk
-import os
-import shutil
 from datetime import datetime
-import re
 from PyPDF2 import PdfReader
 import joblib
-import json
-import numpy as np
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
 
@@ -23,13 +22,6 @@ def load_model():
     with open(MODEL_PATH, "rb") as file:
         data = joblib.load(file)
     return data["model"], data["vectorizer"], data["label_encoder"]
-
-def load_labels_from_dataset():
-    """Load all unique labels from the dataset.json to ensure consistency."""
-    with open(DATASET_PATH, "r") as file:
-        data = json.load(file)
-    labels = list({item["label"] for item in data})
-    return labels
 
 def preprocess_text(text):
     """Clean and preprocess text."""
@@ -53,39 +45,42 @@ def extract_text_from_pdfs(pdf_paths):
             print(f"Error processing {pdf_path}: {e}")
     return extracted_data
 
-def organize_resumes(categorized_data, pdf_paths, label_encoder):
+def organize_resumes(categorized_data, pdf_paths, selected_categories):
     """Organize resumes into category-specific folders."""
     date_folder = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     output_folder = os.path.join(OUTPUT_DIR, date_folder)
     os.makedirs(output_folder, exist_ok=True)
 
-    for label_idx, files in categorized_data.items():
-        try:
-            label = label_encoder.inverse_transform([label_idx])[0]
-        except ValueError:
-            print(f"Skipping invalid category: {label_idx}")
+    pdf_path_mapping = {os.path.basename(path): path for path in pdf_paths}
+
+    for category, files in categorized_data.items():
+        if category not in selected_categories:
+            print(f"Skipping category not selected: {category}")
             continue
 
-        label_folder = os.path.join(output_folder, label)
+        label_folder = os.path.join(output_folder, category)
         os.makedirs(label_folder, exist_ok=True)
         for file in files:
-            for pdf_path in pdf_paths:
-                if os.path.basename(pdf_path) == file:
-                    try:
-                        shutil.copy(pdf_path, label_folder)
-                    except Exception as e:
-                        print(f"Error copying file {file} to {label_folder}: {e}")
-                    break
+            if file in pdf_path_mapping:
+                shutil.copy(pdf_path_mapping[file], label_folder)
+                print(f"Copied {file} to {label_folder}")
+            else:
+                print(f"File {file} not found in PDF paths.")
+
     return output_folder
 
-def classify_resumes(data, model, vectorizer, selected_categories):
+def classify_resumes(data, model, vectorizer, selected_categories, label_encoder):
     filenames, texts = zip(*data)
     features = vectorizer.transform(texts).toarray()  # Convert to dense matrix
     predictions = model.predict(features)
+    decoded_predictions = label_encoder.inverse_transform(predictions)
+
     categorized_data = {category: [] for category in selected_categories}
-    for filename, label in zip(filenames, predictions):
+    for filename, label in zip(filenames, decoded_predictions):
         if label in selected_categories:  # Only include selected categories
             categorized_data[label].append(filename)
+
+    print(f"Categorized Data: {categorized_data}")
     return categorized_data
 
 def select_categories(categories):
@@ -143,11 +138,8 @@ def run_app():
 
     # Load model and dataset labels
     model, vectorizer, saved_label_encoder = load_model()
-    dataset_labels = load_labels_from_dataset()
 
-    # Ensure label encoder is refitted with all labels in dataset
-    label_encoder = LabelEncoder()
-    label_encoder.fit(dataset_labels)
+    categories = saved_label_encoder.classes_
 
     def start_classification():
         pdf_paths = upload_files()
@@ -160,20 +152,16 @@ def run_app():
             messagebox.showerror("Extraction Failed", "Failed to extract text from selected files.")
             return
 
-        categories = label_encoder.classes_
         selected_categories = select_categories(categories)
         if not selected_categories:
             messagebox.showwarning("No Categories Selected", "Please select at least one category.")
             return
 
-        categorized_data = classify_resumes(extracted_data, model, vectorizer, selected_categories)
-        if not categorized_data:
-            messagebox.showerror("Classification Failed", "No data could be classified.")
-            return
+        categorized_data = classify_resumes(extracted_data, model, vectorizer, selected_categories, saved_label_encoder)
 
         progress_window, progress_bar = show_progress_window(len(pdf_paths))
         try:
-            organize_resumes(categorized_data, pdf_paths, label_encoder)
+            organize_resumes(categorized_data, pdf_paths, selected_categories)
             for i in range(len(pdf_paths)):
                 update_progress(progress_bar, i + 1, len(pdf_paths))
         except Exception as e:
