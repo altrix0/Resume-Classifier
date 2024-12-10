@@ -55,3 +55,6 @@ env/
 # Outputs and datasets
 data/outputs/
 data/raw/
+
+# Test folder
+tests/
