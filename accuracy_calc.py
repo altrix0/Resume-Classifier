@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATASET_PATH = os.path.join(BASE_DIR,  "data", "prepared", "dataset.json")
+DATASET_PATH = os.path.join(BASE_DIR,  "data", "split", "test.json")
 ENSEMBLE_MODEL_PATH = os.path.join(BASE_DIR, "data", "models", "ensemble_model.pkl")
 
 def load_data(file_path):
