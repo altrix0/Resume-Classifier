@@ -24,10 +24,9 @@ def extract_text_from_pdfs(pdf_paths):
             print(f"Error processing {pdf_path}: {e}")
     return extracted_data
 
-def organize_resumes(categorized_data, pdf_paths, selected_categories):
-    date_folder = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_folder = os.path.join(OUTPUT_DIR, date_folder)
-    os.makedirs(output_folder, exist_ok=True)
+def organize_resumes(categorized_data, pdf_paths, selected_categories, output_path, session_name):
+    session_folder = os.path.join(output_path, session_name)
+    os.makedirs(session_folder, exist_ok=True)
 
     pdf_path_mapping = {os.path.basename(path): path for path in pdf_paths}
 
@@ -35,11 +34,16 @@ def organize_resumes(categorized_data, pdf_paths, selected_categories):
         if category not in selected_categories:
             continue
 
-        label_folder = os.path.join(output_folder, category)
+        label_folder = os.path.join(session_folder, category)
         os.makedirs(label_folder, exist_ok=True)
+
         for file in files:
             if file in pdf_path_mapping:
                 shutil.copy(pdf_path_mapping[file], label_folder)
                 print(f"Copied {file} to {label_folder}")
 
-    return output_folder
+    return session_folder
+
+
+
+
