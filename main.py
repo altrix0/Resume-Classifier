@@ -1,57 +1,109 @@
-import tkinter as tk
-from tkinter import messagebox
+from tkinter import Tk, messagebox
 from backend.app_working.classifier import load_model, classify_resumes, select_categories
 from backend.app_working.file_handler import extract_text_from_pdfs, organize_resumes
 from backend.app_working.file_uploader import upload_files
 from backend.app_working.progress_handler import show_progress_window, update_progress
-from frontend.ui_main import run_app
+from frontend.ui_main import Window1, Window2, Window3
+import time
 
-def run_app():
-    root = tk.Tk()
-    root.title("Resume Classifier")
-    root.geometry("600x400")
+class ResumeClassifierApp:
+    def __init__(self):
+        self.root = Tk()
+        self.root.title("Resume Classifier")
+        self.root.geometry("900x700")
+        self.root.configure(bg="#EFF6EF")
 
-    # Load model and dataset labels
-    model, vectorizer, saved_label_encoder = load_model()
-    categories = saved_label_encoder.classes_
+        # Initialize backend components
+        self.model, self.vectorizer, self.label_encoder = load_model()
+        self.categories = self.label_encoder.classes_
 
-    def start_classification():
-        pdf_paths = upload_files()
-        if not pdf_paths:
-            messagebox.showwarning("No Files Selected", "Please select at least one PDF file.")
-            return
+        # Initialize frontend windows
+        self.window1 = None
+        self.window2 = None
+        self.window3 = None
 
-        extracted_data = extract_text_from_pdfs(pdf_paths)
-        if not extracted_data:
-            messagebox.showerror("Extraction Failed", "Failed to extract text from selected files.")
-            return
+        # Hold session-specific data
+        self.output_path = "data/outputs"
+        self.session_name = None
+        self.pdf_files = []
+        self.selected_categories = []
 
-        selected_categories = select_categories(categories)
-        if not selected_categories:
-            messagebox.showwarning("No Categories Selected", "Please select at least one category.")
-            return
+        # Start the app with Window 1
+        self.launch_window1()
 
-        categorized_data = classify_resumes(
-            extracted_data, model, vectorizer, selected_categories, saved_label_encoder
+    def clear_window(self):
+        """Clear all widgets from the current window."""
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+    def launch_window1(self):
+        self.clear_window()
+        self.window1 = Window1(
+            self.root,
+            self.output_path,
+            self.categories,
+            self.handle_window1_next,
         )
 
-        progress_window, progress_bar = show_progress_window(len(pdf_paths))
+    def handle_window1_next(self, output_path, session_name, selected_categories, pdf_files):
+        self.output_path = output_path
+        self.session_name = session_name
+        self.selected_categories = selected_categories
+        self.pdf_files = pdf_files
+
+        self.launch_window2()
+
+    def launch_window2(self):
+        self.clear_window()
+        self.window2 = Window2(
+            self.root,
+            len(self.pdf_files),
+            self.output_path,
+            self.pdf_files,
+            self.selected_categories,
+            self.session_name 
+    )
+
+
+    def start_sorting(self):
         try:
-            organize_resumes(categorized_data, pdf_paths, selected_categories)
-            for i in range(len(pdf_paths)):
-                update_progress(progress_bar, i + 1, len(pdf_paths))
+            # Extract text
+            extracted_data = extract_text_from_pdfs(self.pdf_files)
+            if not extracted_data:
+                raise Exception("Failed to extract text from selected files.")
+
+            # Classify resumes
+            categorized_data = classify_resumes(
+                extracted_data,
+                self.model,
+                self.vectorizer,
+                self.selected_categories,
+                self.label_encoder,
+            )
+
+            # Organize resumes (remove the progress_callback argument)
+            session_folder = organize_resumes(
+                categorized_data,
+                self.pdf_files,
+                self.selected_categories,
+                self.output_path,
+                self.session_name
+            )
+
+            # Launch success window after sorting
+            self.launch_window3(session_folder)
+
         except Exception as e:
-            progress_window.destroy()
-            messagebox.showerror("Error", f"An error occurred during organization: {e}")
-            return
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
-        progress_window.destroy()
-        messagebox.showinfo("Process Completed", "Resumes sorted successfully.")
+    def launch_window3(self, session_folder):
+        self.clear_window()
+        self.window3 = Window3(self.root, session_folder)
 
-    tk.Label(root, text="Resume Classifier", font=("Helvetica", 16)).pack(pady=20)
-    tk.Button(root, text="Start Classification", command=start_classification, font=("Helvetica", 14)).pack(pady=20)
+    def run(self):
+        self.root.mainloop()
 
-    root.mainloop()
 
 if __name__ == "__main__":
-    run_app()
+    app = ResumeClassifierApp()
+    app.run()

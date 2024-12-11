@@ -21,6 +21,7 @@ def classify_resumes(data, model, vectorizer, selected_categories, label_encoder
     print(f"Categorized Data: {categorized_data}")
     return categorized_data
 
+
 def select_categories(categories):
     selected_categories = []
 
