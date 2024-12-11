@@ -11,6 +11,10 @@ from tkinter.ttk import Progressbar
 from PIL import Image, ImageTk
 
 
+from tkinter import Canvas, StringVar, filedialog, messagebox
+import customtkinter as ctk
+from PIL import Image, ImageTk
+
 class Window1:
     def __init__(self, master, output_path, categories, next_callback):
         self.master = master
@@ -21,6 +25,7 @@ class Window1:
         self.selected_categories = []  # To store selected categories
         self.next_callback = next_callback
 
+        # Canvas for background
         self.canvas = Canvas(
             master,
             bg="#EFF6EF",
@@ -32,9 +37,9 @@ class Window1:
         )
         self.canvas.place(x=0, y=0)
 
-        # Align the image at the top-left corner and scale to fit window height
+        # Align the image without compressing width and move it slightly out of the frame
         original_image = Image.open("frontend/assets/frame1/image_1.png")
-        resized_image = original_image.resize((200, 700), Image.Resampling.LANCZOS)
+        resized_image = original_image.resize((original_image.width, 750), Image.Resampling.LANCZOS)  # Keep original width
         self.image_image_1 = ImageTk.PhotoImage(resized_image)
 
         self.image_label = ctk.CTkLabel(
@@ -42,56 +47,51 @@ class Window1:
             image=self.image_image_1,
             text="",
         )
-        self.image_label.place(x=0, y=0)
+        self.image_label.place(x=-30, y=-25)  # Move part of the image outside the frame on the left
 
         self.create_labels()
         self.create_buttons()
         self.create_text_boxes()
 
     def create_labels(self):
+        # Move headings slightly to the left
         self.canvas.create_text(
-            400.0,
-            21.0,
+            315.0, 21.0,  # Adjusted x position
             anchor="nw",
             text="Resume Classifier",
             fill="#000000",
             font=("Courier Prime", 48 * -1),
         )
         self.canvas.create_text(
-            420.0,
-            75.0,
+            360.0, 80.0,  # Adjusted x position
             anchor="nw",
             text="Effortless Resume Categorization",
             fill="#000000",
             font=("Courier Prime", 22 * -1),
         )
         self.canvas.create_text(
-            350.0,
-            124.0,
+            315.0, 140.0,
             anchor="nw",
             text="Output Directory:",
             fill="#0D0D0D",
             font=("Courier Prime", 20 * -1),
         )
         self.canvas.create_text(
-            350.0,
-            199.0,
+            315.0, 210.0,
             anchor="nw",
             text="Session Name:",
             fill="#0D0D0D",
             font=("Courier Prime", 20 * -1),
         )
         self.canvas.create_text(
-            350.0,
-            274.0,
+            315.0, 290.0,
             anchor="nw",
             text="Upload Resume(s):",
             fill="#0D0D0D",
             font=("Courier Prime", 20 * -1),
         )
         self.canvas.create_text(
-            350.0,
-            349.0,
+            315.0, 370.0,
             anchor="nw",
             text="Select Categories:",
             fill="#0D0D0D",
@@ -105,8 +105,10 @@ class Window1:
             width=250,
             height=30,
             command=self.select_output_dir,
+            fg_color="#000000",  # Background color
+            text_color="#ffffff"
         )
-        self.output_dir_button.place(x=600, y=120)
+        self.output_dir_button.place(x=587, y=140)
 
         self.upload_button = ctk.CTkButton(
             master=self.master,
@@ -114,8 +116,10 @@ class Window1:
             width=250,
             height=30,
             command=self.upload_files,
+            fg_color="#000000",  # Background color
+            text_color="#ffffff"
         )
-        self.upload_button.place(x=600, y=270)
+        self.upload_button.place(x=587, y=290)
 
         self.next_button = ctk.CTkButton(
             master=self.master,
@@ -123,15 +127,18 @@ class Window1:
             width=100,
             height=40,
             command=self.validate_and_next,
+            fg_color="#000000",  # Background color
+            text_color="#ffffff"
         )
-        self.next_button.place(x=750, y=650)
+        self.next_button.place(x=750, y=630)
 
         self.listbox = ctk.CTkScrollableFrame(
             self.master,
             width=250,
             height=150,
+            fg_color="#000000"  # Background color
         )
-        self.listbox.place(x=600, y=340)
+        self.listbox.place(x=580, y=360)
 
         # Add categories as checkboxes to the listbox
         self.checkbox_vars = {}  # Store variables linked to checkboxes
@@ -145,6 +152,9 @@ class Window1:
                 onvalue=category,
                 offvalue="",
                 width=240,
+                hover_color="#EFF6EF",
+                fg_color="EFF6EF",
+                checkmark_color="#000000"
             )
             checkbox.pack(pady=2, fill="x")
 
@@ -154,8 +164,10 @@ class Window1:
             textvariable=self.session_name,
             width=250,
             height=30,
+            fg_color="#000000",  # Background color
+            text_color="#ffffff"
         )
-        self.session_entry.place(x=600, y=190)
+        self.session_entry.place(x=587, y=210)
 
     def select_output_dir(self):
         directory = filedialog.askdirectory()
@@ -198,6 +210,7 @@ class Window1:
             self.pdf_files,
         )
 
+
 class Window2:
     def __init__(self, master, total_files, output_folder, pdf_files, selected_categories, session_name):
         self.master = master
@@ -220,27 +233,27 @@ class Window2:
         )
         self.canvas.place(x=0, y=0)
 
-        # Background Image
+         # Align the image without compressing width and move it slightly out of the frame
         original_image = Image.open("frontend/assets/frame1/image_1.png")
-        resized_image = original_image.resize((200, 700), Image.Resampling.LANCZOS)
-        self.image_image_1 = ctk.CTkImage(light_image=resized_image, size=(200, 700))
+        resized_image = original_image.resize((original_image.width, 750), Image.Resampling.LANCZOS)  # Keep original width
+        self.image_image_1 = ImageTk.PhotoImage(resized_image)
 
         self.image_label = ctk.CTkLabel(
             self.master,
             image=self.image_image_1,
             text="",
         )
-        self.image_label.place(x=0, y=0)
+        self.image_label.place(x=-30, y=-25)  # Move part of the image outside the frame on the left
 
         self.create_labels()
-        self.progress_bar = Progressbar(master, orient="horizontal", length=600, mode="determinate")
-        self.progress_bar.place(x=150, y=300)
+        self.progress_bar = Progressbar(master, orient="horizontal", length=500, mode="determinate")
+        self.progress_bar.place(x=350, y=300)
 
         self.sort_resumes()  # Start sorting when window is initialized
 
     def create_labels(self):
         self.canvas.create_text(
-            400.0,
+            315.0,
             21.0,
             anchor="nw",
             text="Resume Classifier",
@@ -248,15 +261,15 @@ class Window2:
             font=("Courier Prime", 48 * -1),
         )
         self.canvas.create_text(
-            420.0,
-            75.0,
+            360.0,
+            80.0,
             anchor="nw",
             text="Effortless Resume Categorization",
             fill="#000000",
             font=("Courier Prime", 22 * -1),
         )
         self.canvas.create_text(
-            250.0,
+            300.0,
             250.0,
             anchor="nw",
             text="Please wait while the resumes are being sorted...",
@@ -325,16 +338,25 @@ class Window3:
         )
         self.canvas.place(x=0, y=0)
 
-        # Background Image
-        self.image_image_1 = PhotoImage(file="frontend/assets/frame1/image_1.png")
-        self.image_1 = self.canvas.create_image(150.0, 100.0, image=self.image_image_1)
+       # Align the image without compressing width and move it slightly out of the frame
+        original_image = Image.open("frontend/assets/frame1/image_1.png")
+        resized_image = original_image.resize((original_image.width, 750), Image.Resampling.LANCZOS)  # Keep original width
+        self.image_image_1 = ImageTk.PhotoImage(resized_image)
+
+        self.image_label = ctk.CTkLabel(
+            self.master,
+            image=self.image_image_1,
+            text="",
+        )
+        self.image_label.place(x=-30, y=-25)  # Move part of the image outside the frame on the left
+
 
         self.create_labels()
         self.create_buttons(session_folder)
 
     def create_labels(self):
         self.canvas.create_text(
-            400.0,
+            315.0,
             21.0,
             anchor="nw",
             text="Resume Classifier",
@@ -342,15 +364,15 @@ class Window3:
             font=("Courier Prime", 48 * -1),
         )
         self.canvas.create_text(
-            420.0,
-            75.0,
+            360.0,
+            80.0,
             anchor="nw",
             text="Effortless Resume Categorization",
             fill="#000000",
             font=("Courier Prime", 22 * -1),
         )
         self.canvas.create_text(
-            300.0,
+            450.0,
             250.0,
             anchor="nw",
             text="Thanks for using the app!",
@@ -365,8 +387,10 @@ class Window3:
             width=200,
             height=40,
             command=lambda: self.open_folder(session_folder),
+            fg_color="#000000",  # Background color
+            text_color="#ffffff" 
         )
-        self.open_folder_button.place(x=400, y=400)
+        self.open_folder_button.place(x=495, y=400)
 
     def open_folder(self, folder_path):
         """Open the folder in the system's file explorer."""
