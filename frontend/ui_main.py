@@ -106,7 +106,8 @@ class Window1:
             height=30,
             command=self.select_output_dir,
             fg_color="#000000",  # Background color
-            text_color="#ffffff"
+            text_color="#ffffff",
+            hover_color="#000000"
         )
         self.output_dir_button.place(x=587, y=140)
 
@@ -117,7 +118,8 @@ class Window1:
             height=30,
             command=self.upload_files,
             fg_color="#000000",  # Background color
-            text_color="#ffffff"
+            text_color="#ffffff",
+            hover_color="#000000"
         )
         self.upload_button.place(x=587, y=290)
 
@@ -128,7 +130,8 @@ class Window1:
             height=40,
             command=self.validate_and_next,
             fg_color="#000000",  # Background color
-            text_color="#ffffff"
+            text_color="#ffffff",
+            hover_color="#000000"
         )
         self.next_button.place(x=750, y=630)
 
@@ -153,7 +156,7 @@ class Window1:
                 offvalue="",
                 width=240,
                 hover_color="#EFF6EF",
-                fg_color="EFF6EF",
+                fg_color="#EFF6EF",
                 checkmark_color="#000000"
             )
             checkbox.pack(pady=2, fill="x")
@@ -387,7 +390,8 @@ class Window3:
             width=200,
             height=40,
             command=lambda: self.open_folder(session_folder),
-            fg_color="#000000",  # Background color
+            fg_color="#000000", 
+            hover_color="#000000", # Background color
             text_color="#ffffff" 
         )
         self.open_folder_button.place(x=495, y=400)
