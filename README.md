@@ -122,12 +122,5 @@ xgboost==2.1.3
 
 ---
 
-## Future Enhancements
-- Add support for additional file formats (e.g., TXT).
-- Implement deep learning models for enhanced accuracy.
-- Provide a user-friendly web-based interface.
-
----
-
 ## License
 This project is licensed under the MIT License.
