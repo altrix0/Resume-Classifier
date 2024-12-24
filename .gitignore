@@ -59,7 +59,3 @@ data/raw/
 # Test folder
 tests/
 
-#Prepared data (pdf)
-prepared/test/
-prepared/train/
-prepared/easiertest/
