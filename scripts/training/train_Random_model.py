@@ -10,9 +10,9 @@ import numpy as np
 
 # File paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TRAIN_PATH = os.path.join(BASE_DIR, "data", "split", "train_balanced.json")
-TEST_PATH = os.path.join(BASE_DIR, "data", "split", "test.json")
-MODEL_PATH = os.path.join(BASE_DIR, "data", "models", "random_forest_cv.pkl")
+TRAIN_PATH = os.path.join(BASE_DIR, "..", "data", "split", "train_balanced.json")
+TEST_PATH = os.path.join(BASE_DIR, "..", "data", "split", "test.json")
+MODEL_PATH = os.path.join(BASE_DIR, "..", "data", "models", "random_forest_cv.pkl")
 
 
 def load_data(file_path):
