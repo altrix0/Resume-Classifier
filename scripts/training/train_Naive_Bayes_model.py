@@ -10,8 +10,8 @@ import numpy as np
 
 # File paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TRAIN_PATH = os.path.join(BASE_DIR, "..", "data", "split", "train_balanced.json")
-TEST_PATH = os.path.join(BASE_DIR, "..", "data", "split", "test.json")
+TRAIN_PATH = os.path.join(BASE_DIR, "..", "data", "prepared", "train_balanced.json")
+TEST_PATH = os.path.join(BASE_DIR, "..", "data", "prepared", "test.json")
 MODEL_PATH = os.path.join(BASE_DIR, "..", "data", "models", "naive_bayes_cv.pkl")
 
 
