@@ -9,10 +9,10 @@ from sklearn.model_selection import cross_val_score
 from sklearn.preprocessing import LabelEncoder
 
 # File paths
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TRAIN_PATH = os.path.join(BASE_DIR, "..", "data", "split", "train_balanced.json")
-TEST_PATH = os.path.join(BASE_DIR, "..", "data", "split", "test.json")
-MODEL_PATH = os.path.join(BASE_DIR, "..", "data", "models", "logistic_regression_cv.pkl")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+TRAIN_PATH = os.path.join(BASE_DIR, "data", "prepared", "train_balanced.json")
+TEST_PATH = os.path.join(BASE_DIR, "data", "prepared", "test.json")
+MODEL_PATH = os.path.join(BASE_DIR, "data", "models", "logistic_regression_cv.pkl")
 
 def load_json(file_path):
     """
@@ -24,10 +24,10 @@ def load_json(file_path):
     Returns:
         tuple: Lists of texts and labels.
     """
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         data = json.load(file)
     texts = [entry["text"] for entry in data]
-    labels = [entry["label"] for entry in data]  # Using the updated 'label' key
+    labels = [entry["label"] for entry in data]
     return texts, labels
 
 def train_with_cross_validation(train_file, model_path, cv_folds=5):
@@ -114,7 +114,7 @@ def evaluate_on_test_data(test_file, model_path):
     predictions_encoded = model.predict(features)
     predictions = label_encoder.inverse_transform(predictions_encoded)
     print("Evaluation Metrics:")
-    print(classification_report(labels, predictions))
+    print(classification_report(labels, predictions, zero_division=0))
     print(f"Accuracy: {accuracy_score(labels, predictions):.2f}")
 
 if __name__ == "__main__":

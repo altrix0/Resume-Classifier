@@ -5,7 +5,7 @@ from sklearn.metrics import classification_report, accuracy_score
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATASET_PATH = os.path.join(BASE_DIR, "..", "..", "data", "split", "test.json") 
+DATASET_PATH = os.path.join(BASE_DIR, "..", "..", "data", "prepared", "test.json") 
 MODEL_PATH = os.path.join(BASE_DIR, "..", "..", "data", "models", "knn_cv.pkl")  
 
 def load_data(file_path):

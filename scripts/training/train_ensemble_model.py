@@ -10,8 +10,9 @@ import numpy as np
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATASET_PATH = os.path.join(BASE_DIR, "..", "data", "prepared", "dataset.json")
-MODELS_DIR = os.path.join(BASE_DIR, "..", "data", "models")
+DATASET_PATH = os.path.join(BASE_DIR, "..", "..", "data", "prepared", "train_balanced.json")
+TEST_PATH = os.path.join(BASE_DIR, "..", "..", "data", "prepared", "test.json")
+MODELS_DIR = os.path.join(BASE_DIR, "..", "..", "data", "models")
 ENSEMBLE_MODEL_PATH = os.path.join(MODELS_DIR, "ensemble_model.pkl")
 
 
@@ -92,55 +93,71 @@ def create_ensemble(models):
     )
 
 
+def evaluate_on_test_json(ensemble, label_encoder, vectorizer):
+    """Evaluate the ensemble model on the test.json dataset."""
+    print("Loading test.json for final evaluation...")
+    test_texts, test_labels = load_data(TEST_PATH)
+    
+    print("Vectorizing test.json data...")
+    X_test = vectorizer.transform(test_texts)
+    y_test_encoded = label_encoder.transform(test_labels)
+    
+    print("Evaluating on test.json...")
+    y_pred = ensemble.predict(X_test)
+    print("Evaluation Metrics on test.json:")
+    print(classification_report(label_encoder.inverse_transform(y_test_encoded),
+                                label_encoder.inverse_transform(y_pred)))
+    print(f"Test.json Accuracy: {accuracy_score(y_test_encoded, y_pred):.2f}")
+
+
 def main():
     """Main function to train and evaluate the ensemble model."""
-    # Load data
+    # Load and split train_balanced.json
     print("Loading dataset...")
     texts, labels = load_data(DATASET_PATH)
-
-    # Vectorize data
+    
     print("Vectorizing data...")
     vectorizer = TfidfVectorizer(max_features=5000, stop_words="english")
     features = vectorizer.fit_transform(texts)
-
-    # Encode labels
+    
     print("Encoding labels...")
     label_encoder = LabelEncoder()
     labels_encoded = label_encoder.fit_transform(labels)
-
-    # Split data into train and test sets
+    
     print("Splitting data...")
     X_train, X_test, y_train, y_test = train_test_split(
         features, labels_encoded, test_size=0.2, random_state=70
     )
-
-    # Load base models
+    
+    # Load models and create ensemble
     print("Loading pre-trained models...")
     models, model_vectorizer = load_models()
-
-    # Create ensemble model
+    
     print("Creating ensemble model...")
     ensemble = create_ensemble(models)
-
+    
     # Cross-validation
     print("Performing cross-validation...")
     cv_scores = cross_val_score(ensemble, X_train, y_train, cv=5, scoring="accuracy")
     print(f"Cross-validation scores: {cv_scores}")
     print(f"Mean CV Accuracy: {np.mean(cv_scores):.2f}")
-
+    
     # Train the ensemble model
     print("Training ensemble model...")
     ensemble.fit(X_train, y_train)
-
-    # Evaluate the model
-    print("Evaluating ensemble model...")
+    
+    # Evaluate on split test set
+    print("Evaluating ensemble model on holdout test data...")
     y_pred = ensemble.predict(X_test)
     print("Evaluation Metrics:")
     print(classification_report(label_encoder.inverse_transform(y_test),
                                 label_encoder.inverse_transform(y_pred)))
-    print(f"Test Accuracy: {accuracy_score(y_test, y_pred):.2f}")
-
-    # Save the ensemble model
+    print(f"Holdout Test Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+    
+    # Evaluate on external test.json
+    evaluate_on_test_json(ensemble, label_encoder, vectorizer)
+    
+    # Save the model
     print(f"Saving the ensemble model to {ENSEMBLE_MODEL_PATH}...")
     with open(ENSEMBLE_MODEL_PATH, "wb") as file:
         pickle.dump({
@@ -149,7 +166,7 @@ def main():
             "label_encoder": label_encoder
         }, file)
     print("Model saved successfully!")
-
+    
 
 if __name__ == "__main__":
     main()

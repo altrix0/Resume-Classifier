@@ -11,7 +11,6 @@ accuracy_scripts=(
     "svm_acc.py"
     "LR_acc.py"
     "random_forest_acc.py"
-    "xgboost_acc.py"
     "ensemble_acc.py"
 )
 

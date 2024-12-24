@@ -6,7 +6,7 @@ from sklearn.metrics import classification_report, accuracy_score
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATASET_PATH = os.path.join(BASE_DIR, "..", "..", "data", "split", "test.json")  # Adjusted for scripts folder
+DATASET_PATH = os.path.join(BASE_DIR, "..", "..", "data", "prepared", "test.json")  # Adjusted for scripts folder
 ENSEMBLE_MODEL_PATH = os.path.join(BASE_DIR, "..", "..", "data", "models", "ensemble_model.pkl")
 
 
