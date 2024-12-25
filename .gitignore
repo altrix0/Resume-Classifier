@@ -53,7 +53,7 @@ env/
 .DS_Store
 
 # Outputs and datasets
-data/raw/
+data/raw
 
 # Test folder
 tests/
